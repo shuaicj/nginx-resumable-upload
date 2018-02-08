@@ -10,12 +10,12 @@ Nginx Lua module to support resumable upload in nginx. With the help of this mod
     - [Request URL](#request-url)
     - [Request Header: Content-Range](#request-header-content-range)
     - [Request Header: Content-Length](#request-header-content-length)
-    - [Request Header: X-Checksum-*](#request-header-x-checksum)
+    - [Request Header: X-Checksum-*](#request-header-x-checksum-)
     - [Request Body](#request-body)
 - [Upload Response](#upload-response)
     - [Response Status Code](#response-status-code)
     - [Response Header: Content-Range](#response-header-content-range)
-    - [Response Header: X-Checksum-*](#response-header-x-checksum)
+    - [Response Header: X-Checksum-*](#response-header-x-checksum-)
     - [Response Body](#response-body)
 - [Example Conversation](#example-conversation)
 
@@ -71,7 +71,7 @@ The bytes of this file chunk.
 Implies the info of file the server already got. See also [Request Header: Content-Range](#request-header-content-range). E.g. assuming the total size of file is 20 bytes, and the server already got 9 bytes, this header should be `Content-Range: bytes 0-8/20`.
 
 ### Response Header: X-Checksum-*
-Implies the checksum calculated by server. See also [Request Header: X-Checksum-*](#request-header-x-checksum). This is only present while uploading the last chunk of file, and especially useful while checksums conflict.
+Implies the checksum calculated by server. See also [Request Header: X-Checksum-*](#request-header-x-checksum-). This is only present while uploading the last chunk of file, and especially useful while checksums conflict.
 
 ### Response Body
 Contains error message if something is wrong.
