@@ -28,10 +28,11 @@ Nginx Lua module to support resumable upload in nginx. With the help of this mod
 ## Upload Request
 
 ### Request Method
-Generally `POST` or `PUT` is encouraged, although it is configurable.
+- `POST` : append mode, can only append to the end of file.
+- `PUT`  : idempotent write, can replace existing part of file.
 
 ### Request URL
-A graceful RESTful api for file uploading like `POST /files/{filename}` is encouraged but not mandatory. In whatever way you like, the filename should be passed into this Lua module as a parameter as mentioned in [Get Started](#get-started).
+A graceful RESTful api for file uploading like `POST|PUT /files/{filename}` is encouraged but not mandatory. In whatever way you like, the filename should be passed into this Lua module as a parameter as mentioned in [Get Started](#get-started).
 > Note: Make sure your filename contains only alphanumerics `[0-9a-zA-Z]` and three special characters `.` `-` `_` or it will be considered invalid.
 
 ### Request Header: Content-Range
@@ -39,7 +40,7 @@ Required. Implies the info of this chunk while uploading. It is a standard [HTTP
 - `Content-Range: bytes 0-3/20` : file size 20 bytes, chunk size 4 bytes, that is [0, 3].
 - `Content-Range: bytes 5-9/20` : file size 20 bytes, chunk size 5 bytes, that is [5, 9].
 - `Content-Range: bytes 0-19/20` : the chunk is a complete file.
-> Note: Be careful to set the value of `{from}`, because this Lua module supports `create/recreate/append` only. It means, if the file does not exist on server, `{from}` can only be 0; if the file exists and let's say the size is `n`, the value of `{from}` can only be 0 or `n`.
+> Note: Be careful to set the value of `{from}`. If the file does not exist on server, `{from}` can only be 0. If the file exists and let's say the size is `n`, the value of `{from}` can only be `n` in `POST` mode; while in `PUT` mode, any `0 <= {from} <= n` is valid. See [Request Method](#request-method).
 
 ### Request Header: Content-Length
 Required. Implies the size of this chunk, e.g.
@@ -84,13 +85,28 @@ Let's upload a file which has 20 bytes content:
 This world is great!
 ```
 We split it into 3 chunks:
+
 ### Chunk 1
 ```
-This wo
+> POST /files/testfile
+> Content-Range: bytes 0-6/20
+> Content-Length: 7
+>
+> This wo
+
+< 201 Created
+> Content-Range: bytes 0-6/20
 ```
 ### Chunk 2
 ```
-rld is g
+> POST /files/testfile
+> Content-Range: bytes 7-14/20
+> Content-Length: 8
+>
+> rld is g
+
+< 201 Created
+> Content-Range: bytes 0-14/20
 ```
 ### Chunk 3
 ```
