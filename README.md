@@ -22,7 +22,7 @@ Nginx Lua module to support resumable upload in nginx. With the help of this mod
 
 
 ## Get Started
-1. Install Nginx with lua support as needed.
+1. Install Nginx with lua support if you haven't done this before.
 ```
 $ brew tap homebrew/nginx
 $ brew install nginx-full --with-lua-module
@@ -32,7 +32,7 @@ $ brew install nginx-full --with-lua-module
 $ cd your_desired_dir
 $ git clone https://github.com/shuaicj/nginx-resumable-upload.git
 ```
-3. Configure your nginx as needed.
+3. Configure your nginx.
 ```nginx
 http {
     lua_package_path 'your_desired_dir/nginx-resumable-upload/lib/?.lua;;';
@@ -42,7 +42,7 @@ http {
         server_name   localhost;
         default_type  application/octet-stream;
 
-        client_max_body_size  100m;
+        client_max_body_size  100m; # set as needed
 
         location ~ "^/files/([^/]+)$" {
             content_by_lua_block {
@@ -54,16 +54,32 @@ http {
     }
 }
 ```
-Optionally, you can turn on some kind of checksum, e.g.
+Optionally, you can turn on some kine of checksum validation, e.g.
 ```nginx
-content_by_lua_block {
-    require("shuaicj.upload").upload({
-            filename = ngx.var[1],
-            checksum = "crc32"
-    })
+location ~ "^/files/([^/]+)$" {
+    content_by_lua_block {
+        require("shuaicj.upload").upload({
+                filename = ngx.var[1],
+                checksum = "crc32"
+        })
+    }
 }
 ```
-Another optional feature your can  
+For multiple types of validation, e.g.
+```lua
+checksum = {"crc32", "md5", "sha1"}
+```
+
+A possible scenario is that your client app may want to check the size of the file before it start resumable upload. So another `size` api is preferred and your will get the size number in response body. It is safe if the file doesn't exist and of course you get `0` in body.
+```nginx
+location ~ "^/files/([^/]+)/size$" {
+    content_by_lua_block {
+        require("shuaicj.upload").size({
+                filename = ngx.var[1]
+        })
+    }
+}
+```
 
 
 
