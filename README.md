@@ -8,8 +8,8 @@ Nginx Lua module to support resumable upload in nginx. With the help of this mod
 - [Upload Request](#upload-request)
     - [Request Method](#request-method)
     - [Request URL](#request-url)
-    - [Request Header: Content-Range](#request-header-content-range)
     - [Request Header: Content-Length](#request-header-content-length)
+    - [Request Header: Content-Range](#request-header-content-range)
     - [Request Header: X-Checksum-*](#request-header-x-checksum-)
     - [Request Body](#request-body)
 - [Upload Response](#upload-response)
@@ -47,7 +47,8 @@ http {
         location ~ "^/files/([^/]+)$" {
             content_by_lua_block {
                 require("shuaicj.upload").upload({
-                        filename = ngx.var[1]
+                    dir = "./upload_files/",
+                    filename = ngx.var[1]
                 })
             }
         }
@@ -59,8 +60,9 @@ Optionally, you can turn on some kine of checksum validation, e.g.
 location ~ "^/files/([^/]+)$" {
     content_by_lua_block {
         require("shuaicj.upload").upload({
-                filename = ngx.var[1],
-                checksum = "crc32"
+            dir = "./upload_files/",
+            filename = ngx.var[1],
+            checksum = "crc32"
         })
     }
 }
@@ -75,7 +77,8 @@ A possible scenario is that your client app may want to check the size of the fi
 location ~ "^/files/([^/]+)/size$" {
     content_by_lua_block {
         require("shuaicj.upload").size({
-                filename = ngx.var[1]
+            dir = "./upload_files/",
+            filename = ngx.var[1]
         })
     }
 }
@@ -91,21 +94,21 @@ location ~ "^/files/([^/]+)/size$" {
 
 ### Request URL
 A graceful RESTful api for file uploading like `POST|PUT /files/{filename}` is encouraged but not mandatory. In whatever way you like, the filename should be passed into this Lua module as a parameter as mentioned in [Get Started](#get-started).
-> Note: Make sure your filename contains only alphanumerics `[0-9a-zA-Z]` and three special characters `.` `-` `_` or it will be considered invalid.
+> Note: Make sure your filename contains only alphanumerics `[0-9a-zA-Z]` and three special characters `-` `_` `.` or it will be considered invalid.
+
+### Request Header: Content-Length
+Required. Implies the size of request body, e.g.
+- `Content-Length: 4` : body size 4 bytes.
 
 ### Request Header: Content-Range
-Required. Implies the info of this chunk while uploading. It is a standard [HTTP Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range) designed for download, but here we use it for upload. The format is like `Content-Range: bytes {from}-{to}/{total}`, e.g.
+Required if this is a chunk, not a complete file. Implies the info of this chunk while uploading. It is a standard [HTTP Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range) designed for download, but here we use it for upload. The format is like `Content-Range: bytes {from}-{to}/{total}`, e.g.
 - `Content-Range: bytes 0-3/20` : file size 20 bytes, chunk size 4 bytes, that is [0, 3].
 - `Content-Range: bytes 5-9/20` : file size 20 bytes, chunk size 5 bytes, that is [5, 9].
 - `Content-Range: bytes 0-19/20` : the chunk is a complete file.
 > Note: Be careful to set the value of `{from}`. If the file does not exist on server, `{from}` can only be 0. If the file exists and let's say the size is `n`, the value of `{from}` can only be `n` in `POST` mode; while in `PUT` mode, any `0 <= {from} <= n` is valid. See [Request Method](#request-method).
 
-### Request Header: Content-Length
-Required. Implies the size of this chunk, e.g.
-- `Content-Length: 4` : chunk size 4 bytes.
-
 ### Request Header: X-Checksum-*
-Optional. The checksum calculated by client, used for server to check the file integrity. If you turned on the configuration of some kind of checksum, you should set the corresponding header while uploading the last chunk. The following kind of checksum is supported:
+Required if corresponding checksum is turned on while uploading the last chunk. Calculated by client, used for server to check the file integrity. The following kind of checksum is supported:
 - `X-Checksum-CRC32` : hex string with max length 8, e.g. `abcdef12`.
 - `X-Checksum-MD5` : hex string with fixed length 32, e.g. `0123456789abcdef0123456789abcdef`.
 - `X-Checksum-SHA1` : hex string with fixed length 40, e.g. `0123456789abcdef0123456789abcdef01234567`.
@@ -122,7 +125,7 @@ The bytes of this file chunk.
 - `400 Bad Request` : general client error
 - `405 Method Not Allowed` : http method not allowed
 - `409 Conflict` : checksum conflict
-- `411 Length Required` : header `Content-Length` missing
+- `411 Length Required` : header `Content-Length` missing or illegal
 - `416 Range Not Satisfiable` : header `Content-Range` missing or illegal
 - `500 Internal Server Error` : general server error
 
