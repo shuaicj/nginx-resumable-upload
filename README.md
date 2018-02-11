@@ -130,7 +130,7 @@ The bytes of this file chunk.
 Implies the info of file the server already got. See also [Request Header: Content-Range](#request-header-content-range). E.g. assuming the total size of file is 20 bytes, and the server already got 9 bytes, this header should be `Content-Range: bytes 0-8/20`.
 
 ### Response Header: X-Checksum-*
-Implies the checksum calculated by server. See also [Request Header: X-Checksum-*](#request-header-x-checksum-). This is only present while uploading the last chunk of file, and especially useful while checksums conflict.
+Implies the checksum calculated by server. See also [Request Header: X-Checksum-*](#request-header-x-checksum-). This is only present while uploading the last chunk of file and the checksum is turned on, and especially useful while checksums conflict.
 
 ### Response Body
 Contains error message if something is wrong.
@@ -153,7 +153,7 @@ We split it into 3 chunks:
 > This wo
 
 < 201 Created
-> Content-Range: bytes 0-6/20
+< Content-Range: bytes 0-6/20
 ```
 ### Chunk 2
 ```
@@ -164,7 +164,7 @@ We split it into 3 chunks:
 > rld is g
 
 < 201 Created
-> Content-Range: bytes 0-14/20
+< Content-Range: bytes 0-14/20
 ```
 ### Chunk 3
 ```
@@ -176,6 +176,6 @@ We split it into 3 chunks:
 > reat!
 
 < 201 Created
-> Content-Range: bytes 0-19/20
-> X-Checksum-MD5: 601ba8e825a6aed28ef9a5fbda4b846e
+< Content-Range: bytes 0-19/20
+< X-Checksum-MD5: 601ba8e825a6aed28ef9a5fbda4b846e
 ```
