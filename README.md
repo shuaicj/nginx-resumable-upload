@@ -22,6 +22,48 @@ Nginx Lua module to support resumable upload in nginx. With the help of this mod
 
 
 ## Get Started
+1. Install Nginx with lua support as needed.
+```
+$ brew tap homebrew/nginx
+$ brew install nginx-full --with-lua-module
+```
+2. Download this module.
+```
+$ cd your_desired_dir
+$ git clone https://github.com/shuaicj/nginx-resumable-upload.git
+```
+3. Configure your nginx as needed.
+```nginx
+http {
+    lua_package_path 'your_desired_dir/nginx-resumable-upload/lib/?.lua;;';
+  
+    server {
+        listen        8080;
+        server_name   localhost;
+        default_type  application/octet-stream;
+
+        client_max_body_size  100m;
+
+        location ~ "^/files/([^/]+)$" {
+            content_by_lua_block {
+                require("shuaicj.upload").upload({
+                        filename = ngx.var[1]
+                })
+            }
+        }
+    }
+}
+```
+Optionally, you can turn on some kind of checksum, e.g.
+```nginx
+content_by_lua_block {
+    require("shuaicj.upload").upload({
+            filename = ngx.var[1],
+            checksum = "crc32"
+    })
+}
+```
+Another optional feature your can  
 
 
 
@@ -110,5 +152,14 @@ We split it into 3 chunks:
 ```
 ### Chunk 3
 ```
-reat!
+> POST /files/testfile
+> Content-Range: bytes 15-19/20
+> Content-Length: 5
+> X-Checksum-MD5: 601ba8e825a6aed28ef9a5fbda4b846e
+>
+> reat!
+
+< 201 Created
+> Content-Range: bytes 0-19/20
+> X-Checksum-MD5: 601ba8e825a6aed28ef9a5fbda4b846e
 ```
