@@ -72,7 +72,7 @@ A possible scenario is that your client app may want to check the size of the fi
 ```nginx
 location ~ "^/files/([^/]+)/size$" {
     content_by_lua_block {
-        require("shuaicj.upload").upload(ngx.var[1])
+        require("shuaicj.upload").size(ngx.var[1])
     }
 }
 ```
