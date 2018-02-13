@@ -15,9 +15,10 @@ function test
 }
 
 # start nginx
-nginx -p $DIR -c $DIR/nginx.conf
+# nginx -p $DIR -c $DIR/nginx.conf
 
 # tests
+# TODO
 
 # stop nginx
 # nginx -s stop
