@@ -51,7 +51,7 @@ function M.upload(filename)
     M.check_filename(ctx, filename)
     M.check_headers(ctx, ngx.req.get_headers())
 
-    if ctx.range_end == ctx.file_size - 1 then
+    if ctx.chunk_size > 0 and ctx.range_end == ctx.file_size - 1 then
         ctx.checksum = {}
         for _, verifier in ipairs(M.checksum_verifiers) do
             verifier.check_headers(ctx, ngx.req.get_headers())
@@ -60,7 +60,7 @@ function M.upload(filename)
 
     M.receive_and_write_file(ctx)
 
-    if ctx.range_end == ctx.file_size - 1 then
+    if ctx.chunk_size > 0 and ctx.range_end == ctx.file_size - 1 then
         for _, verifier in ipairs(M.checksum_verifiers) do
             verifier.verify_checksum(ctx)
         end
@@ -128,7 +128,11 @@ function M.check_headers(ctx, headers)
     end
 
     local range_start, range_end, file_size
-    if chunk_size > 0 then
+    if chunk_size == 0 then
+        range_start = 0
+        range_end = 0
+        file_size = 0
+    else
         local range = headers["Content-Range"]
         if not range then
             range_start = 0
@@ -187,7 +191,7 @@ function M.receive_and_write_file(ctx)
         f:seek("set", ctx.range_start)
     end
 
-    if ctx.chunk_size ~= 0 then
+    if ctx.chunk_size > 0 then
         local sock, e = ngx.req.socket()
         if not sock then
             f:close()
@@ -207,12 +211,12 @@ function M.receive_and_write_file(ctx)
             f:write(data)
             remaining = remaining - n
         end
+        if ctx.range_end + 1 > ctx.real_size then
+            ctx.real_size = ctx.range_end + 1
+        end
     end
 
     f:close()
-    if ctx.range_end + 1 > ctx.real_size then
-        ctx.real_size = ctx.range_end + 1
-    end
     ngx.log(ngx.INFO, string.format("write file ok. %s %d-%d/%d",
         ctx.file_path, ctx.range_start, ctx.range_end, ctx.file_size))
 end
