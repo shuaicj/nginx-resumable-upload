@@ -23,19 +23,28 @@ Nginx Lua module to support resumable upload in nginx. With the help of this mod
 
 
 ## Get Started
-1. Install Nginx with lua support if you haven't done this before.
+1. Install Nginx with lua support and other tools if you haven't done this before. On Ubuntu 16.04:
 ```
-$ brew tap denji/nginx
-$ brew install nginx-full --with-lua-module
+$ sudo apt-get install nginx-extras lua5.1 luarocks
 ```
-2. Download this module.
+
+2. Download this module. You have two ways to do this. Choose the one you prefer.
+- By `luarocks` (recommended)
+```
+$ luarocks install nginx-resumable-upload
+```
+- By `git clone` directly
 ```
 $ cd your_desired_dir
 $ git clone https://github.com/shuaicj/nginx-resumable-upload.git
 ```
+
 3. Configure your nginx.
 ```nginx
 http {
+
+    # You must set this lua_package_path if you choose install by `git clone`.
+    # Remove this line when installing by luarocks.
     lua_package_path 'your_desired_dir/nginx-resumable-upload/lib/?.lua;;';
   
     init_by_lua_block {
