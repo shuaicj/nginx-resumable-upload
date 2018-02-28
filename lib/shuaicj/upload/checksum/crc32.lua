@@ -4,6 +4,7 @@ local io = io
 local string = string
 local tostring = tostring
 local tonumber = tonumber
+local ngx = ngx
 
 local ffi = require "ffi"
 local util = require "shuaicj.upload.util"

@@ -3,6 +3,7 @@ local M = {}
 local io = io
 local string = string
 local pairs = pairs
+local ngx = ngx
 
 function M.tohex(str)
     return (string.gsub(str, '.', function (c)
@@ -28,7 +29,7 @@ function M.exit(http_status_code, body, ctx)
     if body then
         ngx.say(body)
     end
-    return ngx.exit(200)
+    return ngx.exit(ngx.OK)
 end
 
 function M.truncate_file(path)
